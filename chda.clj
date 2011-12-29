@@ -73,10 +73,16 @@
 ;; 헤더 파일의 의존 관계를 분석한다.
 ;;============================================================
 
-(println "wait...")
-(let [img-type "png" ; 출력할 이미지 파일 타입
-      img-name (str "output." img-type) ; 출력할 이미지 이름
-      dot-name "output.dot"] ; 출력할 파일 이름
-  (make-dot-file dot-name (parse-header "."))
-  (make-img-file dot-name img-name img-type))
-(println "done.")
+(defn main
+  "프로그램 엔트리 포인트"
+  []
+  (println "wait...")
+  (let [img-type "png" ; 출력할 이미지 파일 타입
+        img-name (str "output." img-type) ; 출력할 이미지 이름
+        dot-name "output.dot"] ; 출력할 파일 이름
+    (make-dot-file dot-name (parse-header "."))
+    ;;(make-img-file dot-name img-name img-type))
+  (println "done.")))
+
+(main)
+
