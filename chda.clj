@@ -78,5 +78,5 @@
       img-name (str "output." img-type) ; 출력할 이미지 이름
       dot-name "output.dot"] ; 출력할 파일 이름
   (make-dot-file dot-name (parse-header "."))
-;;  (make-img-file dot-name img-name img-type))
+  (make-img-file dot-name img-name img-type))
 (println "done.")
