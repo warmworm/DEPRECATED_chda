@@ -9,7 +9,7 @@
 ;; 헤더 파일들 간의 의존 관계를 시각적으로 확인할 수
 ;; 있게 한다.
 
-(ns warmworm.da
+(ns chda
   (:import (java.io File))
   (:use [clojure.contrib.duck-streams :only (reader append-spit)]))
 
