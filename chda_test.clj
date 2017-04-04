@@ -1,4 +1,4 @@
-(ns chda-test
+﻿(ns chda-test
   (:use chda clojure.contrib.test-is))
 
 (deftest test-cpp-file?

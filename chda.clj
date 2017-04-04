@@ -1,39 +1,39 @@
-;; C++ Çì´õ ÀÇÁ¸°ü°è ºĞ¼®±â(C++ Header Dependency Analyzer)
+ï»¿;; C++ í—¤ë” ì˜ì¡´ê´€ê³„ ë¶„ì„ê¸°(C++ Header Dependency Analyzer)
 ;;
-;; @author: ÇÔ¿µÈÆ(Younghoon Ham)
+;; @author: í•¨ì˜í›ˆ(Younghoon Ham)
 ;; @date: 2011.12.08(Thu)
 ;;
-;; C++ ÇÁ·ÎÁ§Æ®¸¦ ±¸¼ºÇÏ°í ÀÖ´Â ¼Ò½º ¹× Çì´õ ÆÄÀÏµé °£ÀÇ
-;; ÀÇÁ¸ °ü°è¸¦ ºĞ¼®ÇÑ ´ÙÀ½ .dot Æ÷¸ËÀ¸·Î Ãâ·ÂÇÏ°í, ÀÌ¸¦
-;; graphviz¸¦ ÀÌ¿ëÇÏ¿© ÀÌ¹ÌÁö ÆÄÀÏ·Î º¯È¯ÇÔÀ¸·Î½á
-;; Çì´õ ÆÄÀÏµé °£ÀÇ ÀÇÁ¸ °ü°è¸¦ ½Ã°¢ÀûÀ¸·Î È®ÀÎÇÒ ¼ö
-;; ÀÖ°Ô ÇÑ´Ù.
+;; C++ í”„ë¡œì íŠ¸ë¥¼ êµ¬ì„±í•˜ê³  ìˆëŠ” ì†ŒìŠ¤ ë° í—¤ë” íŒŒì¼ë“¤ ê°„ì˜
+;; ì˜ì¡´ ê´€ê³„ë¥¼ ë¶„ì„í•œ ë‹¤ìŒ .dot í¬ë§·ìœ¼ë¡œ ì¶œë ¥í•˜ê³ , ì´ë¥¼
+;; graphvizë¥¼ ì´ìš©í•˜ì—¬ ì´ë¯¸ì§€ íŒŒì¼ë¡œ ë³€í™˜í•¨ìœ¼ë¡œì¨
+;; í—¤ë” íŒŒì¼ë“¤ ê°„ì˜ ì˜ì¡´ ê´€ê³„ë¥¼ ì‹œê°ì ìœ¼ë¡œ í™•ì¸í•  ìˆ˜
+;; ìˆê²Œ í•œë‹¤.
 
 (ns chda
   (:import (java.io File))
   (:use [clojure.contrib.duck-streams :only (reader append-spit)]))
 
-;; fileÀÌ ÀÇÁ¸ÇÏ°í ÀÖ´Â Çì´õ ÆÄÀÏÀÇ ¸ñ·ÏÀ» Ç¥ÇöÇÏ´Â ±¸Á¶Ã¼
+;; fileì´ ì˜ì¡´í•˜ê³  ìˆëŠ” í—¤ë” íŒŒì¼ì˜ ëª©ë¡ì„ í‘œí˜„í•˜ëŠ” êµ¬ì¡°ì²´
 (defstruct dep-set :file :headers)
 
 (defn cpp-file?
-  "fileÀÌ C °ü·Ã ÆÄÀÏÀÎÁö È®ÀÎÇÑ´Ù."
+  "fileì´ C ê´€ë ¨ íŒŒì¼ì¸ì§€ í™•ì¸í•œë‹¤."
   [file]
   (let [filename (.toLowerCase (.toString file))]
     (some #(.endsWith filename %)
           [".h" ".hpp" ".c" ".cpp" ".inl"])))
 
 (defn get-header-name
-  "#include <stdio.h> ÇüÅÂÀÇ ¹®ÀÚ¿­¿¡¼­ ÆÄÀÏ ÀÌ¸§À» ÃßÃâÇÑ´Ù."
+  "#include <stdio.h> í˜•íƒœì˜ ë¬¸ìì—´ì—ì„œ íŒŒì¼ ì´ë¦„ì„ ì¶”ì¶œí•œë‹¤."
   [name]
   (println name) ;; TEST
   (name)) ;; TEST
 ;;  (#(re-find #"\w+" %) name))
 
-;; Á¤±ÔÇ¥Çö½ÄÀ» ÀÌ¿ëÇØ¼­ line¿¡¼­ Çì´õ ÆÄÀÏ ÀÌ¸§À»
-;; ÃßÃâÇÑ ´ÙÀ½ coll¿¡ Ãß°¡ÇÑ´Ù.
+;; ì •ê·œí‘œí˜„ì‹ì„ ì´ìš©í•´ì„œ lineì—ì„œ í—¤ë” íŒŒì¼ ì´ë¦„ì„
+;; ì¶”ì¶œí•œ ë‹¤ìŒ collì— ì¶”ê°€í•œë‹¤.
 (defn extract-header
-  "ÆÄÀÏ¿¡¼­ ÀÇÁ¸ÇÏ´Â ÆÄÀÏµéÀÇ ¸ñ·ÏÀ» ÃßÃâÇÑ´Ù."
+  "íŒŒì¼ì—ì„œ ì˜ì¡´í•˜ëŠ” íŒŒì¼ë“¤ì˜ ëª©ë¡ì„ ì¶”ì¶œí•œë‹¤."
   [filename rdr]
   (let [headers (filter #(re-find #"#include" %) (line-seq rdr))]
     (if (> (count headers) 0)
@@ -46,7 +46,7 @@
   ;;                      (line-seq rdr)))))
 
 (defn parse-header
-  "base-dir ¹× ÇÏÀ§ µğ·ºÅä¸®ÀÇ C++°ü·Ã ÆÄÀÏµéÀ» ºĞ¼®ÇØ¼­ °¢°¢ÀÇ ÆÄÀÏÀÌ Æ÷ÇÔÇÏ°í ÀÖ´Â Çì´õ ÆÄÀÏÀ» Á¤º¸¸¦ coll¿¡ ÀúÀåÇÑ´Ù."
+  "base-dir ë° í•˜ìœ„ ë””ë ‰í† ë¦¬ì˜ C++ê´€ë ¨ íŒŒì¼ë“¤ì„ ë¶„ì„í•´ì„œ ê°ê°ì˜ íŒŒì¼ì´ í¬í•¨í•˜ê³  ìˆëŠ” í—¤ë” íŒŒì¼ì„ ì •ë³´ë¥¼ collì— ì €ì¥í•œë‹¤."
   [base-dir]
   (for [file (file-seq (File. base-dir))
         :when (cpp-file? file)]
@@ -54,7 +54,7 @@
       (extract-header (.toString file) rdr))))
 
 (defn make-dot-file
-  "º¸°üÁßÀÎ Çì´õ ÀÇÁ¸°ü°è Á¤º¸¸¦ .dot Çü½ÄÀÇ ÆÄÀÏ·Î ³»º¸³½´Ù."
+  "ë³´ê´€ì¤‘ì¸ í—¤ë” ì˜ì¡´ê´€ê³„ ì •ë³´ë¥¼ .dot í˜•ì‹ì˜ íŒŒì¼ë¡œ ë‚´ë³´ë‚¸ë‹¤."
   [filename dep]
   (when (> (count dep) 0)
     (spit filename "digraph dep_diagram {\n")
@@ -64,22 +64,22 @@
     (append-spit filename "}\n")))
 
 (defn make-img-file
-  ".dot Çü½ÄÀÇ ÆÄÀÏÀ» ÀÌ¹ÌÁö ÆÄÀÏ·Î º¯È¯ÇÑ´Ù."
+  ".dot í˜•ì‹ì˜ íŒŒì¼ì„ ì´ë¯¸ì§€ íŒŒì¼ë¡œ ë³€í™˜í•œë‹¤."
   [dot-name img-name img-ext]
   (let [arg (str "dot -T" img-ext " " dot-name " -o " img-name)]
     (.. Runtime getRuntime (exec arg))))
 
 ;;============================================================
-;; Çì´õ ÆÄÀÏÀÇ ÀÇÁ¸ °ü°è¸¦ ºĞ¼®ÇÑ´Ù.
+;; í—¤ë” íŒŒì¼ì˜ ì˜ì¡´ ê´€ê³„ë¥¼ ë¶„ì„í•œë‹¤.
 ;;============================================================
 
 (defn main
-  "ÇÁ·Î±×·¥ ¿£Æ®¸® Æ÷ÀÎÆ®"
+  "í”„ë¡œê·¸ë¨ ì—”íŠ¸ë¦¬ í¬ì¸íŠ¸"
   []
   (println "wait...")
-  (let [img-type "png" ; Ãâ·ÂÇÒ ÀÌ¹ÌÁö ÆÄÀÏ Å¸ÀÔ
-        img-name (str "output." img-type) ; Ãâ·ÂÇÒ ÀÌ¹ÌÁö ÀÌ¸§
-        dot-name "output.dot"] ; Ãâ·ÂÇÒ ÆÄÀÏ ÀÌ¸§
+  (let [img-type "png" ; ì¶œë ¥í•  ì´ë¯¸ì§€ íŒŒì¼ íƒ€ì…
+        img-name (str "output." img-type) ; ì¶œë ¥í•  ì´ë¯¸ì§€ ì´ë¦„
+        dot-name "output.dot"] ; ì¶œë ¥í•  íŒŒì¼ ì´ë¦„
     (make-dot-file dot-name (parse-header "."))
     (make-img-file dot-name img-name img-type))
   (println "done.")))
